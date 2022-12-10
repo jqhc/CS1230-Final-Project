@@ -9,13 +9,18 @@ float getWidthAngle(float heightAngle, int w, int h) {
     return 2*glm::atan(aspectRatio * glm::tan(heightAngle / 2.0f));
 }
 
-Camera::Camera(const SceneCameraData &cameraData,
+Camera::Camera(glm::vec3 pos, glm::vec3 look, glm::vec3 up,
+               float heightAngle,
                int w, int h,
-               float near, float far):
-    pos(cameraData.pos), look(cameraData.look), up(cameraData.up),
-    heightAngle(cameraData.heightAngle), widthAngle(getWidthAngle(cameraData.heightAngle, w, h)),
-    near(near), far(far)
-{}
+               float near, float far) {
+    this->pos = pos;
+    this->look = look;
+    this->up = up;
+    this->heightAngle = heightAngle;
+    this->widthAngle = getWidthAngle(heightAngle, w, h);
+    this->near = near;
+    this->far = far;
+}
 
 // calculates view matrix
 glm::mat4 Camera::viewMatrix() {
@@ -61,4 +66,42 @@ glm::mat4 Camera::projMatrix() {
                        glm::vec4(0, 0, 0, 1));
 
     return openGLMat * unhingeMat * scaleMat;
+}
+
+void Camera::changeNearFarPlane(float nearPlane, float farPlane) {
+    this->near = nearPlane;
+    this->far = farPlane;
+}
+
+void Camera::changeWidthHeight(int width, int height) {
+    this->widthAngle = getWidthAngle(this->heightAngle, width, height);
+}
+
+void Camera::move(glm::vec3 direction, float deltaTime) {
+    glm::vec3 deltaVec = 5.0f * deltaTime * direction;
+    glm::mat4 translationMat(glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
+                             glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
+                             glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
+                             glm::vec4(deltaVec.x, deltaVec.y, deltaVec.z, 1.0f));
+    this->pos = translationMat * glm::vec4(pos, 1.0f);
+}
+
+void Camera::rotate(glm::vec3 axis, float theta) {
+    // calculate rotation matrix about axis
+    glm::mat4 rotation(glm::vec4(glm::cos(theta) + std::pow(axis.x, 2)*(1-glm::cos(theta)),
+                                 axis.x*axis.y*(1-glm::cos(theta)) + axis.z*glm::sin(theta),
+                                 axis.x*axis.z*(1-glm::cos(theta)) - axis.y*glm::sin(theta),
+                                 0.0f),
+                       glm::vec4(axis.x*axis.y*(1-glm::cos(theta)) - axis.z*glm::sin(theta),
+                                 glm::cos(theta) + std::pow(axis.y, 2)*(1-glm::cos(theta)),
+                                 axis.y*axis.z*(1-glm::cos(theta)) + axis.x*glm::sin(theta),
+                                 0.0f),
+                       glm::vec4(axis.x*axis.z*(1-glm::cos(theta)) + axis.y*glm::sin(theta),
+                                 axis.y*axis.z*(1-glm::cos(theta)) - axis.x*glm::sin(theta),
+                                 glm::cos(theta) + std::pow(axis.z, 2)*(1-glm::cos(theta)),
+                                 0.0f),
+                       glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+    this->look = rotation * glm::vec4(look, 0.0f);
+    this->up = rotation * glm::vec4(up, 0.0f);
 }

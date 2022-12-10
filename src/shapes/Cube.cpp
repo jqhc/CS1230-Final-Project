@@ -71,7 +71,7 @@ namespace Shapes::Cube {
         }
     }
 
-    inline void makeCube(int param1, std::vector<float>& vertexData) {
+    inline void makeCube(int param1, int param2, std::vector<float>& vertexData) {
         // Task 4: Use the makeFace() function to make all 6 sides of the cube
         glm::vec3 topBackLeft(-0.5,0.5,-0.5);
         glm::vec3 topBackRight(0.5,0.5,-0.5);

@@ -4,11 +4,9 @@
 #include <string>
 
 struct Settings {
-    std::string sceneFilePath;
-    int shapeParameter1 = 1;
-    int shapeParameter2 = 1;
-    float nearPlane = 1;
-    float farPlane = 1;
+    float theta1 = 0;
+    float theta2 = 0;
+    float theta3 = 0;
     bool perPixelFilter = false;
     bool kernelBasedFilter = false;
     bool extraCredit1 = false;

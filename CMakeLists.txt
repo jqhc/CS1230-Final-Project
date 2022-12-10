@@ -30,22 +30,19 @@ add_executable(${PROJECT_NAME}
     src/realtime.cpp
     src/mainwindow.cpp
     src/settings.cpp
-    src/utils/scenefilereader.cpp
-    src/utils/sceneparser.cpp
     src/camera.cpp
-    src/shapes/Shapes.cpp
-    src/shapes/Cone.cpp
+    src/realtime_helpers.cpp
+
     src/shapes/Cube.cpp
     src/shapes/Cylinder.cpp
     src/shapes/Sphere.cpp
-    src/realtime_helpers.cpp
+
+    src/ik_solver.cpp
 
     src/mainwindow.h
     src/realtime.h
     src/settings.h
     src/utils/scenedata.h
-    src/utils/scenefilereader.h
-    src/utils/sceneparser.h
     src/utils/shaderloader.h
     src/camera.h
 )
@@ -74,9 +71,6 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
     FILES
         resources/shaders/phong.frag
         resources/shaders/phong.vert
-        resources/shaders/texture.vert
-        resources/shaders/texture.frag
-        resources/kitten.png
 )
 
 # GLEW: this provides support for Windows (including 64-bit)

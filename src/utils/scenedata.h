@@ -58,6 +58,13 @@ struct SceneLightData {
     float angle;         // Only applicable to spot lights, in RADIANS
 
     float width, height; // No longer supported (area lights)
+
+    SceneLightData(int id, glm::vec3 direction) {
+        this->id = id;
+        this->type = LightType::LIGHT_DIRECTIONAL;
+        this->color = glm::vec4(1,1,1,0);
+        this->dir = glm::vec4(direction, 0);
+    }
 };
 
 // Struct which contains data for the camera of a scene

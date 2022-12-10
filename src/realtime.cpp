@@ -1,5 +1,4 @@
 #include "realtime.h"
-#pragma once
 
 #include <QCoreApplication>
 #include <QMouseEvent>
@@ -7,13 +6,11 @@
 #include <iostream>
 #include "settings.h"
 #include "utils/shaderloader.h"
-#include "utils/sceneparser.h"
-#include "shapes/Shapes.cpp"
 
 // ================== Project 5: Lights, Camera
 
 Realtime::Realtime(QWidget *parent)
-    : QOpenGLWidget(parent), m_camera(m_renderData.cameraData, 0, 0, 0, 0)
+    : QOpenGLWidget(parent), m_camera(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0, 0, 0, 0, 0)
 {
     m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
@@ -35,38 +32,10 @@ void Realtime::finish() {
 
     // Students: anything requiring OpenGL calls when the program exits should be done here
 
-    // clean up VBO and VAO memory
-    std::vector<GLuint> vbos{m_coneVBO, m_cubeVBO, m_cylinderVBO, m_sphereVBO};
-    std::vector<GLuint> vaos{m_coneVAO, m_cubeVAO, m_cylinderVAO, m_sphereVAO};
-    glDeleteBuffers(4, vbos.data());
-    glDeleteVertexArrays(4, vaos.data());
-
-    // delete shader data
-    glDeleteProgram(m_phong_shader);
-    glDeleteProgram(m_texture_shader);
-
-    // delete fullscreen quad data
-    glDeleteVertexArrays(1, &m_fullscreen_vao);
-    glDeleteBuffers(1, &m_fullscreen_vbo);
-
-    // delete FBO data
-    glDeleteTextures(1, &m_fbo_texture);
-    glDeleteRenderbuffers(1, &m_fbo_renderbuffer);
-    glDeleteFramebuffers(1, &m_fbo);
-
-    doneCurrent();
-
     this->doneCurrent();
 }
 
 void Realtime::initializeGL() {
-    // set camera move speed in world units
-    moveSpeed = 5.0f;
-    // set default FBO ID
-    m_defaultFBO = 2;
-    // set gamma value
-    gammaVal = 1.5f;
-
     m_devicePixelRatio = this->devicePixelRatio();
 
     m_timer = startTimer(1000/60);
@@ -88,121 +57,68 @@ void Realtime::initializeGL() {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
-    // Students: anything requiring OpenGL calls when the program starts should be done here
-    // set default clear colour to black
+    // set clear colour to black
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // Task 1: call ShaderLoader::createShaderProgram with the paths to the vertex
-    //         and fragment shaders. Then, store its return value in `m_shader`
-    m_texture_shader = ShaderLoader::createShaderProgram(":/resources/shaders/texture.vert",
-                                                         ":/resources/shaders/texture.frag");
+    // load shader
     m_phong_shader = ShaderLoader::createShaderProgram(":/resources/shaders/phong.vert",
                                                        ":/resources/shaders/phong.frag");
+    // set up lights
+    m_lights = std::vector{SceneLightData(0, glm::vec3(-1,-1,0)),
+                           SceneLightData(1, glm::vec3(0,-1,-1))};
+    // set up camera
+    m_camera = Camera(glm::vec3(7,4,7), glm::vec3(-7,-4,-7), glm::vec3(0,1,0), glm::radians(30.0f),
+                      size().width(), size().height(),
+                      0.1f, 100.0f);
 
-    // initializing buffer data
-    // default param1 = 5, param2 = 5
-    initializeVBO(coneBuffer, m_coneVBO, m_coneVAO, PrimitiveType::PRIMITIVE_CONE);
-    initializeVBO(cubeBuffer, m_cubeVBO, m_cubeVAO, PrimitiveType::PRIMITIVE_CUBE);
-    initializeVBO(cylinderBuffer, m_cylinderVBO, m_cylinderVAO, PrimitiveType::PRIMITIVE_CYLINDER);
-    initializeVBO(sphereBuffer, m_sphereVBO, m_sphereVAO, PrimitiveType::PRIMITIVE_SPHERE);
-    buffersInitialized = true;
+    // set up shape VBOs
+    initializeVBO(m_cubeBuffer, m_cubeVBO, m_cubeVAO, PrimitiveType::PRIMITIVE_CUBE);
+    initializeVBO(m_cylinderBuffer, m_cylinderVBO, m_cylinderVAO, PrimitiveType::PRIMITIVE_CYLINDER);
+    initializeVBO(m_sphereBuffer, m_sphereVBO, m_sphereVAO, PrimitiveType::PRIMITIVE_SPHERE);
 
-    // initializing fullscreen quad data
-    initializeFullscreenQuad();
+    // sending uniforms to shader
+    glUseProgram(m_phong_shader);
+    sendGlobalDataToShader(1.0f, 1.0f, 1.0f);
+    sendLightsToShader(m_lights);
+    glUseProgram(0);
 
-    // initializing the FBO
-    makeFBO(size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
+    // set leg segment length
+    legSegmentLength = 0.5f;
 }
 
 void Realtime::paintGL() {
-    // Students: anything requiring OpenGL calls every frame should be done here
-    // send (updated) camera data to shader
-
-    // FBO STUFF
-    // bind the FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-
-    // call glViewport
-    glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
-
-    // clear FBO
+    // clear screen to black
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // bind shader
+    glUseProgram(m_phong_shader);
 
-    // draw all shapes to FBO
-    paintAllShapes();
+    // send camera data to shader
+    sendCameraDataToShader(m_camera);
 
-    // FULLSCREEN QUAD STUFF
-    // bind default framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
+    paintFloor();
 
-    // call glViewport
-    glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
+    paintLeg(settings.theta1, settings.theta2, settings.theta3);
 
-    // clear default framebuffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // paint FBO texture data to screen
-    paintFBOTextureToScreen(settings.perPixelFilter, settings.kernelBasedFilter,
-                            settings.extraCredit1, settings.extraCredit2);
+    // unbind shader
+    glUseProgram(0);
 }
 
 void Realtime::resizeGL(int w, int h) {
-    std::cout << "window resized!" << std::endl;
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
-    // Students: anything requiring OpenGL calls when the program starts should be done here
-    // modify camera for new screen size
-    m_camera = Camera(m_renderData.cameraData, size().width(), size().height(),
-                      settings.nearPlane, settings.farPlane);
+    // modify camera width angle accordingly
+    m_camera.changeWidthHeight(size().width(), size().height());
 
-    // delete and regenerate FBO
-    glDeleteTextures(1, &m_fbo_texture);
-    glDeleteRenderbuffers(1, &m_fbo_renderbuffer);
-    glDeleteFramebuffers(1, &m_fbo);
-    makeFBO(size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
-
-    update();
+    update(); // asks for a PaintGL() call to occur
 }
 
 void Realtime::sceneChanged() {
-    // flags for debugging
-    std::cout << "scene changed! filepath: " << settings.sceneFilePath << std::endl;
-
-    // changing render data to match new scene file
-    RenderData metaData;
-    if (!SceneParser::parse(settings.sceneFilePath, metaData)) {
-        throw std::invalid_argument("Couldn't read file!");
-    }
-    m_renderData = metaData;
-
-    // modify camera for new scene file
-    m_camera = Camera(m_renderData.cameraData, size().width(), size().height(),
-                      settings.nearPlane, settings.farPlane);
-
-    glUseProgram(m_phong_shader);
-    sendGlobalDataToShader(metaData.globalData);
-    std::cout << "global data sent!" << std::endl;
-    sendLightsToShader(metaData.lights);
-    std::cout << "light data sent!" << std::endl;
-    glUseProgram(0);
 
     update(); // asks for a PaintGL() call to occur
 }
 
 void Realtime::settingsChanged() {
-    // recalculate and send buffer data for given params
-    if (buffersInitialized) {
-        std::cout << "buffers changed!" << std::endl;
-        changeBufferData(coneBuffer, m_coneVBO, PrimitiveType::PRIMITIVE_CONE);
-        changeBufferData(cubeBuffer, m_cubeVBO, PrimitiveType::PRIMITIVE_CUBE);
-        changeBufferData(cylinderBuffer, m_cylinderVBO, PrimitiveType::PRIMITIVE_CYLINDER);
-        changeBufferData(sphereBuffer, m_sphereVBO, PrimitiveType::PRIMITIVE_SPHERE);
-    }
-
-    // modify camera for new near and far plane settings
-    m_camera = Camera(m_renderData.cameraData, size().width(), size().height(),
-                      settings.nearPlane, settings.farPlane);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -238,35 +154,15 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         int deltaY = posY - m_prev_mouse_pos.y;
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
-        // Use deltaX and deltaY here to rotate
+        // rotate for X
         float thetaX = (float)deltaX / 500.0f;
-        glm::mat4 rotationX(glm::vec4(glm::cos(thetaX), 0.0f, -glm::sin(thetaX), 0.0f),
-                            glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-                            glm::vec4(glm::sin(thetaX), 0.0f, glm::cos(thetaX), 0.0f),
-                            glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        m_camera.rotate(glm::vec3(0,1,0), thetaX);
 
+        // rotate for Y
         glm::vec3 sideVec = glm::normalize(glm::cross(glm::normalize(m_camera.look),
                                                       glm::normalize(m_camera.up)));
         float thetaY = (float)deltaY / 500.0f;
-        glm::mat4 rotationY(glm::vec4(glm::cos(thetaY) + std::pow(sideVec.x, 2)*(1-glm::cos(thetaY)),
-                                      sideVec.x*sideVec.y*(1-glm::cos(thetaY)) + sideVec.z*glm::sin(thetaY),
-                                      sideVec.x*sideVec.z*(1-glm::cos(thetaY)) - sideVec.y*glm::sin(thetaY),
-                                      0.0f),
-                            glm::vec4(sideVec.x*sideVec.y*(1-glm::cos(thetaY)) - sideVec.z*glm::sin(thetaY),
-                                      glm::cos(thetaY) + std::pow(sideVec.y, 2)*(1-glm::cos(thetaY)),
-                                      sideVec.y*sideVec.z*(1-glm::cos(thetaY)) + sideVec.x*glm::sin(thetaY),
-                                      0.0f),
-                            glm::vec4(sideVec.x*sideVec.z*(1-glm::cos(thetaY)) + sideVec.y*glm::sin(thetaY),
-                                      sideVec.y*sideVec.z*(1-glm::cos(thetaY)) - sideVec.x*glm::sin(thetaY),
-                                      glm::cos(thetaY) + std::pow(sideVec.z, 2)*(1-glm::cos(thetaY)),
-                                      0.0f),
-                            glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-
-        m_camera.look = rotationX * rotationY * glm::vec4(m_camera.look, 0.0f);
-        m_camera.up = rotationX * rotationY * glm::vec4(m_camera.up, 0.0f);
-
-        m_renderData.cameraData.look = glm::vec4(m_camera.look, 0.0f);
-        m_renderData.cameraData.up = glm::vec4(m_camera.up, 0.0f);
+        m_camera.rotate(sideVec, thetaY);
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -288,30 +184,28 @@ void Realtime::timerEvent(QTimerEvent *event) {
     glm::mat4 translationMat;
     // forward/+look
     if (m_keyMap[Qt::Key_W]) {
-        changeCameraPos(normLook, true, deltaTime);
+        m_camera.move(normLook, deltaTime);
     }
     // backward/-look
     if (m_keyMap[Qt::Key_S]) {
-        changeCameraPos(normLook, false, deltaTime);
+        m_camera.move(-normLook, deltaTime);
     }
     // left/-(look x up)
     if (m_keyMap[Qt::Key_A]) {
-        changeCameraPos(normRight, false, deltaTime);
+        m_camera.move(-normRight, deltaTime);
     }
     // right/(look x up)
     if (m_keyMap[Qt::Key_D]) {
-        changeCameraPos(normRight, true, deltaTime);
+        m_camera.move(normRight, deltaTime);
     }
     // world up/(0,1,0)
     if (m_keyMap[Qt::Key_Space]) {
-        changeCameraPos(worldUp, true, deltaTime);
+        m_camera.move(worldUp, deltaTime);
     }
     // world down/(0, -1, 0)
     if (m_keyMap[Qt::Key_Control]) { // ACTUALLY COMMAND KEY
-        changeCameraPos(worldUp, false, deltaTime);
+        m_camera.move(-worldUp, deltaTime);
     }
-    // set render data's pos
-    m_renderData.cameraData.pos = glm::vec4(m_camera.pos, 1.0f);
 
     update(); // asks for a PaintGL() call to occur
 }

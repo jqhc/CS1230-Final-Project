@@ -18,27 +18,22 @@ public:
 
 private:
     void connectUIElements();
-    void connectParam1();
-    void connectParam2();
-    void connectNear();
-    void connectFar();
+    void connectTheta1();
+    void connectTheta2();
+    void connectTheta3();
     void connectPerPixelFilter();
     void connectKernelBasedFilter();
-    void connectUploadFile();
     void connectExtraCredit();
 
     Realtime *realtime;
     QCheckBox *filter1;
     QCheckBox *filter2;
-    QPushButton *uploadFile;
-    QSlider *p1Slider;
-    QSlider *p2Slider;
-    QSpinBox *p1Box;
-    QSpinBox *p2Box;
-    QSlider *nearSlider;
-    QSlider *farSlider;
-    QDoubleSpinBox *nearBox;
-    QDoubleSpinBox *farBox;
+    QSlider *theta1Slider;
+    QSlider *theta2Slider;
+    QSlider *theta3Slider;
+    QDoubleSpinBox *theta1Box;
+    QDoubleSpinBox *theta2Box;
+    QDoubleSpinBox *theta3Box;
 
     // Extra Credit:
     QCheckBox *ec1;
@@ -49,13 +44,12 @@ private:
 private slots:
     void onPerPixelFilter();
     void onKernelBasedFilter();
-    void onUploadFile();
-    void onValChangeP1(int newValue);
-    void onValChangeP2(int newValue);
-    void onValChangeNearSlider(int newValue);
-    void onValChangeFarSlider(int newValue);
-    void onValChangeNearBox(double newValue);
-    void onValChangeFarBox(double newValue);
+    void onValChangeTheta1Slider(int newValue);
+    void onValChangeTheta2Slider(int newValue);
+    void onValChangeTheta3Slider(int newValue);
+    void onValChangeTheta1Box(double newValue);
+    void onValChangeTheta2Box(double newValue);
+    void onValChangeTheta3Box(double newValue);
 
     // Extra Credit:
     void onExtraCredit1();
