@@ -7,12 +7,13 @@ struct Settings {
     float theta1 = 0;
     float theta2 = 0;
     float theta3 = 0;
-    bool perPixelFilter = false;
-    bool kernelBasedFilter = false;
-    bool extraCredit1 = false;
-    bool extraCredit2 = false;
-    bool extraCredit3 = false;
-    bool extraCredit4 = false;
+
+    float targetX = 0;
+    float targetY = 0;
+    float targetZ = 0;
+
+    float segLength1 = 0;
+    float segLength2 = 0;
 };
 
 

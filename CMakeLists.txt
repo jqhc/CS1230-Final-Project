@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
     src/settings.cpp
     src/camera.cpp
     src/realtime_helpers.cpp
+    src/spider.cpp
 
     src/shapes/Cube.cpp
     src/shapes/Cylinder.cpp
@@ -45,6 +46,7 @@ add_executable(${PROJECT_NAME}
     src/utils/scenedata.h
     src/utils/shaderloader.h
     src/camera.h
+    src/spider.h
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`

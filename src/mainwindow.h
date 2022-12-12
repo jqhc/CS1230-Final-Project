@@ -21,13 +21,15 @@ private:
     void connectTheta1();
     void connectTheta2();
     void connectTheta3();
-    void connectPerPixelFilter();
-    void connectKernelBasedFilter();
-    void connectExtraCredit();
+
+    void connectTargetX();
+    void connectTargetY();
+    void connectTargetZ();
+
+    void connectSegLength1();
+    void connectSegLength2();
 
     Realtime *realtime;
-    QCheckBox *filter1;
-    QCheckBox *filter2;
     QSlider *theta1Slider;
     QSlider *theta2Slider;
     QSlider *theta3Slider;
@@ -35,15 +37,19 @@ private:
     QDoubleSpinBox *theta2Box;
     QDoubleSpinBox *theta3Box;
 
-    // Extra Credit:
-    QCheckBox *ec1;
-    QCheckBox *ec2;
-    QCheckBox *ec3;
-    QCheckBox *ec4;
+    QSlider *targetXSlider;
+    QSlider *targetYSlider;
+    QSlider *targetZSlider;
+    QDoubleSpinBox *targetXBox;
+    QDoubleSpinBox *targetYBox;
+    QDoubleSpinBox *targetZBox;
+
+    QSlider *segLength1Slider;
+    QSlider *segLength2Slider;
+    QDoubleSpinBox *segLength1Box;
+    QDoubleSpinBox *segLength2Box;
 
 private slots:
-    void onPerPixelFilter();
-    void onKernelBasedFilter();
     void onValChangeTheta1Slider(int newValue);
     void onValChangeTheta2Slider(int newValue);
     void onValChangeTheta3Slider(int newValue);
@@ -51,9 +57,15 @@ private slots:
     void onValChangeTheta2Box(double newValue);
     void onValChangeTheta3Box(double newValue);
 
-    // Extra Credit:
-    void onExtraCredit1();
-    void onExtraCredit2();
-    void onExtraCredit3();
-    void onExtraCredit4();
+    void onValChangeTargetXSlider(int newValue);
+    void onValChangeTargetYSlider(int newValue);
+    void onValChangeTargetZSlider(int newValue);
+    void onValChangeTargetXBox(double newValue);
+    void onValChangeTargetYBox(double newValue);
+    void onValChangeTargetZBox(double newValue);
+
+    void onValChangeSegLength1Slider(int newValue);
+    void onValChangeSegLength2Slider(int newValue);
+    void onValChangeSegLength1Box(double newValue);
+    void onValChangeSegLength2Box(double newValue);
 };

@@ -13,14 +13,28 @@
 #include <QOpenGLWidget>
 #include <QTime>
 #include <QTimer>
+#include "spider.h"
 
 class Realtime : public QOpenGLWidget
 {
 public:
     Realtime(QWidget *parent = nullptr);
     void finish();                                      // Called on program exit
-    void sceneChanged();
     void settingsChanged();
+
+    // helpers for sending uniforms to shader
+    // USED BY SPIDER
+    static void sendGlobalDataToShader(GLuint phong_shader, float ka, float kd, float ks);
+    static void sendCameraDataToShader(GLuint phong_shader, Camera& camera);
+    static void sendLightsToShader(GLuint phong_shader, std::vector<SceneLightData>& lights);
+    static void sendMaterialToShader(GLuint phong_shader,
+                                     glm::vec4 cAmbient, glm::vec4 cDiffuse, glm::vec4 cSpecular,
+                                     float shininess);
+
+    // paints a shape
+    static void paintShape(GLuint shaderID,
+                           int bufferSize, GLuint vao,
+                           SceneMaterial material, glm::mat4 model);
 
 public slots:
     void tick(QTimerEvent* event);                      // Called once per tick of m_timer
@@ -72,23 +86,16 @@ private:
     GLuint m_cylinderVAO;
     GLuint m_sphereVAO;
 
-    // leg lengths
-    float legSegmentLength;
+    // spider object
+    Spider m_spider;
 
     // paints floor to screen
-    void paintFloor();
+    void paintFloor(float y, float size);
 
-    // paints leg to screen
-    void paintLeg(float theta1, float theta2, float theta3);
+    // paints target point
+    void paintTarget(glm::vec3 target);
 
     // helper for initializing the shape VBOs
-    void initializeVBO(std::vector<float>& bufferData, GLuint& vbo, GLuint& vao,
+    void initializeVBO(std::vector<float>& buffer, GLuint& vbo, GLuint& vao,
                        PrimitiveType type);
-
-    // helpers for sending uniforms to shader
-    void sendGlobalDataToShader(float ka, float kd, float ks);
-    void sendCameraDataToShader(Camera& camera);
-    void sendLightsToShader(std::vector<SceneLightData>& lights);
-    void sendMaterialToShader(glm::vec4 cAmbient, glm::vec4 cDiffuse, glm::vec4 cSpecular,
-                              float shininess);
 };

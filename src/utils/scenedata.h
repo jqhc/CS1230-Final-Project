@@ -132,6 +132,14 @@ struct SceneMaterial {
        cEmissive = glm::vec4(0);
        bumpMap.clear();
    }
+
+   SceneMaterial(glm::vec3 cAmbient, glm::vec3 cDiffuse, glm::vec3 cSpecular,
+                 float shininess) {
+       this->cAmbient = glm::vec4(cAmbient, 0);
+       this->cDiffuse = glm::vec4(cDiffuse, 0);
+       this->cSpecular = glm::vec4(cSpecular, 0);
+       this->shininess = shininess;
+   }
 };
 
 // Struct which contains data for a single primitive in a scene

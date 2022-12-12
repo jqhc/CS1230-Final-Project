@@ -6,11 +6,14 @@
 #include <iostream>
 #include "settings.h"
 #include "utils/shaderloader.h"
+#include "ik_solver.cpp"
 
 // ================== Project 5: Lights, Camera
 
 Realtime::Realtime(QWidget *parent)
-    : QOpenGLWidget(parent), m_camera(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0, 0, 0, 0, 0)
+    : QOpenGLWidget(parent),
+      m_camera(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0, 0, 0, 0, 0),
+      m_spider(0, 0, 0, 0, 0, 0, 0, 0)
 {
     m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
@@ -65,7 +68,8 @@ void Realtime::initializeGL() {
                                                        ":/resources/shaders/phong.frag");
     // set up lights
     m_lights = std::vector{SceneLightData(0, glm::vec3(-1,-1,0)),
-                           SceneLightData(1, glm::vec3(0,-1,-1))};
+                           SceneLightData(1, glm::vec3(0,-1,-1)),
+                           SceneLightData(2, glm::vec3(0,1,0))};
     // set up camera
     m_camera = Camera(glm::vec3(7,4,7), glm::vec3(-7,-4,-7), glm::vec3(0,1,0), glm::radians(30.0f),
                       size().width(), size().height(),
@@ -78,29 +82,36 @@ void Realtime::initializeGL() {
 
     // sending uniforms to shader
     glUseProgram(m_phong_shader);
-    sendGlobalDataToShader(1.0f, 1.0f, 1.0f);
-    sendLightsToShader(m_lights);
+    sendGlobalDataToShader(m_phong_shader, 1.0f, 1.0f, 1.0f);
+    sendLightsToShader(m_phong_shader, m_lights);
     glUseProgram(0);
 
-    // set leg segment length
-    legSegmentLength = 0.5f;
+    // setting up spider
+    m_spider = Spider(m_phong_shader,
+                      m_cylinderVAO, m_cylinderBuffer.size() / 6,
+                      m_sphereVAO, m_sphereBuffer.size() / 6,
+                      0.5f, 0.5f, 0.08f);
 }
 
 void Realtime::paintGL() {
     // clear screen to black
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // bind shader
-    glUseProgram(m_phong_shader);
 
     // send camera data to shader
-    sendCameraDataToShader(m_camera);
-
-    paintFloor();
-
-    paintLeg(settings.theta1, settings.theta2, settings.theta3);
-
-    // unbind shader
+    glUseProgram(m_phong_shader);
+    sendCameraDataToShader(m_phong_shader, m_camera);
     glUseProgram(0);
+
+    // paint the ground
+    paintFloor(-1, 20);
+
+    // paint leg for calculated IK solution angles
+    glm::vec3 target(settings.targetX, settings.targetY, settings.targetZ);
+//    m_spider.paintLeg(glm::mat4(1), target);
+//    // paint the target point as a blue sphere
+//    paintTarget(target);
+
+    m_spider.paintSpider(target);
 }
 
 void Realtime::resizeGL(int w, int h) {
@@ -109,11 +120,6 @@ void Realtime::resizeGL(int w, int h) {
 
     // modify camera width angle accordingly
     m_camera.changeWidthHeight(size().width(), size().height());
-
-    update(); // asks for a PaintGL() call to occur
-}
-
-void Realtime::sceneChanged() {
 
     update(); // asks for a PaintGL() call to occur
 }
