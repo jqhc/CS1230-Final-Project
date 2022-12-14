@@ -195,25 +195,25 @@ void MainWindow::initialize() {
 //    vLayout->addWidget(theta3Layout);
 
     // TARGET POS
-    lTargetX->addWidget(targetXSlider);
-    lTargetX->addWidget(targetXBox);
-    targetXLayout->setLayout(lTargetX);
+//    lTargetX->addWidget(targetXSlider);
+//    lTargetX->addWidget(targetXBox);
+//    targetXLayout->setLayout(lTargetX);
 
-    lTargetY->addWidget(targetYSlider);
-    lTargetY->addWidget(targetYBox);
-    targetYLayout->setLayout(lTargetY);
+//    lTargetY->addWidget(targetYSlider);
+//    lTargetY->addWidget(targetYBox);
+//    targetYLayout->setLayout(lTargetY);
 
-    lTargetZ->addWidget(targetZSlider);
-    lTargetZ->addWidget(targetZBox);
-    targetZLayout->setLayout(lTargetZ);
+//    lTargetZ->addWidget(targetZSlider);
+//    lTargetZ->addWidget(targetZBox);
+//    targetZLayout->setLayout(lTargetZ);
 
-    vLayout->addWidget(target_label);
-    vLayout->addWidget(targetX_label);
-    vLayout->addWidget(targetXLayout);
-    vLayout->addWidget(targetY_label);
-    vLayout->addWidget(targetYLayout);
-    vLayout->addWidget(targetZ_label);
-    vLayout->addWidget(targetZLayout);
+//    vLayout->addWidget(target_label);
+//    vLayout->addWidget(targetX_label);
+//    vLayout->addWidget(targetXLayout);
+//    vLayout->addWidget(targetY_label);
+//    vLayout->addWidget(targetYLayout);
+//    vLayout->addWidget(targetZ_label);
+//    vLayout->addWidget(targetZLayout);
 
     // LEG SEGMENT LENGTHS
 //    lSegLength1->addWidget(segLength1Slider);

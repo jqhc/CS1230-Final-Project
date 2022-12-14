@@ -21,7 +21,7 @@ namespace IKSolver {
 
         // calculate distance from (0,0,0) (fixed point) to target point
         float distToTarget = glm::length(target);
-        std::cout << "distance to target: " << distToTarget << std::endl;
+//        std::cout << "distance to target: " << distToTarget << std::endl;
 
         // if the target point is farther than the length of the entire leg,
         // leg should straighten out and go in that direction.
@@ -52,18 +52,18 @@ namespace IKSolver {
             float beta = abs(cosBeta)<=1 ? acos(cosBeta) : cosBeta>1 ? 0 : M_PI;
     //        float aPrime = atan2(target.y, glm::length(glm::vec3(target.x, 0, target.z)));
 
-            std::cout << "alpha: " << alpha << ", "
-                      << "beta: " << beta << ", "
-                      << "gamma: " << gamma << std::endl;
+//            std::cout << "alpha: " << alpha << ", "
+//                      << "beta: " << beta << ", "
+//                      << "gamma: " << gamma << std::endl;
 
             theta1 = -atan2(target.z,target.x);
             theta2 = M_PI/2.0f - alpha - gamma;
             theta3 = 2.0f*M_PI-beta;
         }
 
-        std::cout << "theta1: " << theta1 << ", "
-                  << "theta2: " << theta2 << ", "
-                  << "theta3: " << theta3 << std::endl;
+//        std::cout << "theta1: " << theta1 << ", "
+//                  << "theta2: " << theta2 << ", "
+//                  << "theta3: " << theta3 << std::endl;
 
         return std::tuple{theta1, theta2, theta3};
     }

@@ -1,4 +1,5 @@
 #include "glm/fwd.hpp"
+#include "glm/gtx/transform.hpp"
 #include "utils/scenedata.h"
 #include <iostream>
 #include "camera.h"
@@ -78,30 +79,18 @@ void Camera::changeWidthHeight(int width, int height) {
 }
 
 void Camera::move(glm::vec3 direction, float deltaTime) {
+    // calculate translation vector
     glm::vec3 deltaVec = 5.0f * deltaTime * direction;
-    glm::mat4 translationMat(glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
-                             glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-                             glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
-                             glm::vec4(deltaVec.x, deltaVec.y, deltaVec.z, 1.0f));
-    this->pos = translationMat * glm::vec4(pos, 1.0f);
+    // calculate translation matrix
+    glm::mat4 translation = glm::translate(deltaVec);
+    // move camera position
+    this->pos = translation * glm::vec4(pos, 1.0f);
 }
 
 void Camera::rotate(glm::vec3 axis, float theta) {
     // calculate rotation matrix about axis
-    glm::mat4 rotation(glm::vec4(glm::cos(theta) + std::pow(axis.x, 2)*(1-glm::cos(theta)),
-                                 axis.x*axis.y*(1-glm::cos(theta)) + axis.z*glm::sin(theta),
-                                 axis.x*axis.z*(1-glm::cos(theta)) - axis.y*glm::sin(theta),
-                                 0.0f),
-                       glm::vec4(axis.x*axis.y*(1-glm::cos(theta)) - axis.z*glm::sin(theta),
-                                 glm::cos(theta) + std::pow(axis.y, 2)*(1-glm::cos(theta)),
-                                 axis.y*axis.z*(1-glm::cos(theta)) + axis.x*glm::sin(theta),
-                                 0.0f),
-                       glm::vec4(axis.x*axis.z*(1-glm::cos(theta)) + axis.y*glm::sin(theta),
-                                 axis.y*axis.z*(1-glm::cos(theta)) - axis.x*glm::sin(theta),
-                                 glm::cos(theta) + std::pow(axis.z, 2)*(1-glm::cos(theta)),
-                                 0.0f),
-                       glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-
+    glm::mat4 rotation = glm::rotate(theta, axis);
+    // rotate look and up vectors
     this->look = rotation * glm::vec4(look, 0.0f);
     this->up = rotation * glm::vec4(up, 0.0f);
 }

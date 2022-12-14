@@ -6,14 +6,13 @@
 #include <iostream>
 #include "settings.h"
 #include "utils/shaderloader.h"
-#include "ik_solver.cpp"
 
 // ================== Project 5: Lights, Camera
 
 Realtime::Realtime(QWidget *parent)
     : QOpenGLWidget(parent),
       m_camera(glm::vec3(0), glm::vec3(0), glm::vec3(0), 0, 0, 0, 0, 0),
-      m_spider(0, 0, 0, 0, 0, 0, 0, 0)
+      m_spider(0, 0, 0, 0, 0, 0, 0, 0, 0)
 {
     m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
@@ -90,7 +89,7 @@ void Realtime::initializeGL() {
     m_spider = Spider(m_phong_shader,
                       m_cylinderVAO, m_cylinderBuffer.size() / 6,
                       m_sphereVAO, m_sphereBuffer.size() / 6,
-                      0.5f, 0.5f, 0.08f);
+                      0.4f, 0.4f, 0.05f, 0.2f);
 }
 
 void Realtime::paintGL() {
@@ -103,15 +102,14 @@ void Realtime::paintGL() {
     glUseProgram(0);
 
     // paint the ground
-    paintFloor(-1, 20);
+    paintFloor(0, 20);
 
     // paint leg for calculated IK solution angles
-    glm::vec3 target(settings.targetX, settings.targetY, settings.targetZ);
 //    m_spider.paintLeg(glm::mat4(1), target);
 //    // paint the target point as a blue sphere
 //    paintTarget(target);
 
-    m_spider.paintSpider(target);
+    m_spider.paintSpider();
 }
 
 void Realtime::resizeGL(int w, int h) {
@@ -211,6 +209,25 @@ void Realtime::timerEvent(QTimerEvent *event) {
     // world down/(0, -1, 0)
     if (m_keyMap[Qt::Key_Control]) { // ACTUALLY COMMAND KEY
         m_camera.move(-worldUp, deltaTime);
+    }
+
+    // SPIDER MOVEMENT
+    if (m_keyMap[Qt::Key_Up]) {
+        m_spider.move(deltaTime, true);
+    }
+    if (m_keyMap[Qt::Key_Down]) {
+        m_spider.move(deltaTime, false);
+    }
+    if (m_keyMap[Qt::Key_Left]) {
+        m_spider.rotateLook(deltaTime, true);
+    }
+    if (m_keyMap[Qt::Key_Right]) {
+        m_spider.rotateLook(deltaTime, false);
+    }
+
+    // move time forward for all legs
+    for (Leg& leg : m_spider.legs) {
+        leg.tick(deltaTime);
     }
 
     update(); // asks for a PaintGL() call to occur

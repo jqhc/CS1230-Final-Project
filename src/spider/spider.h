@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <vector>
+#include "spider/leg.h"
 
 class Spider
 {
@@ -12,7 +14,7 @@ public:
            GLuint cylinderVAO, int cylinderBufferSize,
            GLuint sphereVAO, int sphereBufferSize,
            float segLength1, float segLength2,
-           float legDiameter);
+           float legDiameter, float spiderHeight);
 
     //----FIELDS----//
     // GL-related fields (for painting to screen)
@@ -22,21 +24,33 @@ public:
     GLuint m_sphereVAO;
     int m_sphereBufferSize;
 
-    // Spider characteristic fields
+    // Spider basic characteristic fields
     float segLength1; // length of first leg segment (closer to ground)
     float segLength2; // length of second leg segment (closer to body)
     float legDiameter; // diameter of all legs
+    float spiderHeight; // height from ground to center of spider body
+
+    // Spider movement fields
+    glm::vec3 pos; // spider position (center of body)
+    glm::vec3 look; // vector that spider's looking in
+    glm::vec3 up; // up vector of spider
+//    glm::mat4 spiderModel;
+    glm::mat4 spiderTranslation;
+    glm::mat4 spiderRotation;
+
+    // Spider legs
+    std::vector<Leg> legs;
 
     //----METHODS----//
     // paints spider to screen! main function, to be called in Realtime
-    void paintSpider(glm::vec3 bodyPos);
+    void paintSpider();
 
     // paints body of spider
-    void paintBody(glm::vec3 bodyPos);
+    void paintBody(glm::mat4 spiderModel);
 
-    // paints an individual leg of the spider
-    void paintLeg(glm::mat4 legModel,
-                  glm::vec3 target);
+    // for movement
+    void move(float dist, bool forward);
+    void rotateLook(float deltaTime, bool right);
 };
 
 #endif // SPIDER_H

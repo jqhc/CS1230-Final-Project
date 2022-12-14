@@ -13,7 +13,7 @@
 #include <QOpenGLWidget>
 #include <QTime>
 #include <QTimer>
-#include "spider.h"
+#include "spider/spider.h"
 
 class Realtime : public QOpenGLWidget
 {
