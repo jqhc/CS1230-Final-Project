@@ -34,6 +34,7 @@ add_executable(${PROJECT_NAME}
     src/realtime_helpers.cpp
     src/spider/spider.cpp
     src/spider/leg.cpp
+    src/terraingenerator.cpp
 
     src/shapes/Cube.cpp
     src/shapes/Cylinder.cpp
@@ -49,6 +50,7 @@ add_executable(${PROJECT_NAME}
     src/camera.h
     src/spider/spider.h
     src/spider/leg.h
+    src/terraingenerator.h
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
@@ -75,6 +77,8 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
     FILES
         resources/shaders/phong.frag
         resources/shaders/phong.vert
+        resources/shaders/terrain.vert
+        resources/shaders/terrain.frag
 )
 
 # GLEW: this provides support for Windows (including 64-bit)

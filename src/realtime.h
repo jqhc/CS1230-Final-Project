@@ -2,6 +2,7 @@
 
 // Defined before including GLEW to suppress deprecation messages on macOS
 #include "camera.h"
+#include "terraingenerator.h"
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -14,6 +15,13 @@
 #include <QTime>
 #include <QTimer>
 #include "spider/spider.h"
+
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QMatrix4x4>
+#include <glm/gtc/type_ptr.hpp>
+
+QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
 class Realtime : public QOpenGLWidget
 {
@@ -30,6 +38,9 @@ public:
     static void sendMaterialToShader(GLuint phong_shader,
                                      glm::vec4 cAmbient, glm::vec4 cDiffuse, glm::vec4 cSpecular,
                                      float shininess);
+
+    // USED BY TERRAIN
+    void sendTerrainDataToShader(GLuint terrain_shader, Camera& camera);
 
     // paints a shape
     static void paintShape(GLuint shaderID,
@@ -66,6 +77,7 @@ private:
 
     // shader ID
     GLuint m_phong_shader;
+    QOpenGLShaderProgram *m_terrain_shader = nullptr;
 
     // camera
     Camera m_camera;
@@ -85,9 +97,15 @@ private:
     GLuint m_cubeVAO;
     GLuint m_cylinderVAO;
     GLuint m_sphereVAO;
-
+    // terrain VBO IDs
+    QOpenGLBuffer m_terrainVBO;
+    // terrain VAO IDs
+    QOpenGLVertexArrayObject m_terrainVAO;
     // spider object
     Spider m_spider;
+
+    // terrain object
+    TerrainGenerator m_terrain;
 
     // paints floor to screen
     void paintFloor(float y, float size);

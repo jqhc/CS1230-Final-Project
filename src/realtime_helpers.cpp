@@ -8,6 +8,22 @@
 #include "shapes/Cylinder.cpp"
 #include "shapes/Sphere.cpp"
 
+#include <QOpenGLShaderProgram>
+
+/**
+ * @brief sends global data params to phong shader
+ */
+void Realtime::sendTerrainDataToShader(GLuint terrain_shader, Camera& camera) {
+    /*
+     * uniform mat4 projMatrix;
+uniform mat4 mvMatrix;
+uniform vec4 cameraPos;
+     * */
+    glUniformMatrix4fv(glGetUniformLocation(terrain_shader, "projMatrix"), 1, GL_FALSE, &camera.projMatrix()[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(terrain_shader, "mvMatrix"), 1, GL_FALSE, &camera.viewMatrix()[0][0]);
+    glUniform3fv(glGetUniformLocation(terrain_shader, "cameraPos"), 1, &camera.pos[0]);
+}
+
 /**
  * @brief sends global data params to phong shader
  */
@@ -188,16 +204,19 @@ void Realtime::paintShape(GLuint shaderID,
  * @param size - x and z dimension
  */
 void Realtime::paintFloor(float y, float size) {
-    glm::mat4 floorModel = glm::translate(glm::vec3(0,y-0.05f,0)) // move to y
-            * glm::scale(glm::vec3(size,0.1f,size)); // stretch in XZ and flatten in Y
+    m_terrain_shader->bind();
+    m_terrain_shader->setUniformValue(
+                m_terrain_shader->uniformLocation("projMatrix"), QMatrix4x4(glm::value_ptr(m_camera.projMatrix())).transposed());
+    m_terrain_shader->setUniformValue(
+                m_terrain_shader->uniformLocation("mvMatrix"), QMatrix4x4(glm::value_ptr(m_camera.viewMatrix())).transposed());
 
-    SceneMaterial floorMaterial(glm::vec3(0),
-                                glm::vec3(0.5f),
-                                glm::vec3(1,1,1), 10.0f);
+    int res = m_terrain.getResolution();
 
-    paintShape(m_phong_shader,
-               m_cubeBuffer.size() / 6, m_cubeVAO,
-               floorMaterial, floorModel);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDrawArrays(GL_TRIANGLES, 0, res * res * 6);
+
+    m_terrain_shader->release();
 }
 
 /**

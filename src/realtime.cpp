@@ -7,6 +7,8 @@
 #include "settings.h"
 #include "utils/shaderloader.h"
 
+#include <QOpenGLShaderProgram>
+
 // ================== Project 5: Lights, Camera
 
 Realtime::Realtime(QWidget *parent)
@@ -62,9 +64,10 @@ void Realtime::initializeGL() {
     // set clear colour to black
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // load shader
+    // load phong shader
     m_phong_shader = ShaderLoader::createShaderProgram(":/resources/shaders/phong.vert",
                                                        ":/resources/shaders/phong.frag");
+
     // set up lights
     m_lights = std::vector{SceneLightData(0, glm::vec3(-1,-1,0)),
                            SceneLightData(1, glm::vec3(0,-1,-1)),
@@ -79,11 +82,42 @@ void Realtime::initializeGL() {
     initializeVBO(m_cylinderBuffer, m_cylinderVBO, m_cylinderVAO, PrimitiveType::PRIMITIVE_CYLINDER);
     initializeVBO(m_sphereBuffer, m_sphereVBO, m_sphereVAO, PrimitiveType::PRIMITIVE_SPHERE);
 
-    // sending uniforms to shader
+    // sending uniforms to phong shader
     glUseProgram(m_phong_shader);
     sendGlobalDataToShader(m_phong_shader, 1.0f, 1.0f, 1.0f);
     sendLightsToShader(m_phong_shader, m_lights);
     glUseProgram(0);
+
+    // setting up terrain
+    m_terrain_shader = new QOpenGLShaderProgram;
+    m_terrain_shader->addShaderFromSourceFile(QOpenGLShader::Vertex,":/resources/shaders/terrain.vert");
+    m_terrain_shader->addShaderFromSourceFile(QOpenGLShader::Fragment,":/resources/shaders/terrain.frag");
+
+    m_terrainVAO.create();
+    m_terrainVAO.bind();
+
+    std::vector<GLfloat> verts = m_terrain.generateTerrain();
+
+    m_terrainVBO.create();
+    m_terrainVBO.bind();
+    m_terrainVBO.allocate(verts.data(),verts.size()*sizeof(GLfloat));
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
+                             nullptr);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
+                             reinterpret_cast<void *>(3 * sizeof(GLfloat)));
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
+                             reinterpret_cast<void *>(6 * sizeof(GLfloat)));
+
+    m_terrainVBO.release();
+
+    m_terrain_shader->release();
 
     // setting up spider
     m_spider = Spider(m_phong_shader,
@@ -154,8 +188,8 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
     if (m_mouseDown) {
         int posX = event->position().x();
         int posY = event->position().y();
-        int deltaX = posX - m_prev_mouse_pos.x;
-        int deltaY = posY - m_prev_mouse_pos.y;
+        int deltaX = m_prev_mouse_pos.x - posX;
+        int deltaY = m_prev_mouse_pos.y - posY;
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
         // rotate for X
