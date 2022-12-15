@@ -247,9 +247,11 @@ void Realtime::timerEvent(QTimerEvent *event) {
 
     // SPIDER MOVEMENT
     if (m_keyMap[Qt::Key_Up]) {
+        m_camera.move(m_spider.spiderLook(), deltaTime / 5.0f);
         m_spider.move(deltaTime, true);
     }
     if (m_keyMap[Qt::Key_Down]) {
+        m_camera.move(-m_spider.spiderLook(), deltaTime / 5.0f);
         m_spider.move(deltaTime, false);
     }
     if (m_keyMap[Qt::Key_Left]) {

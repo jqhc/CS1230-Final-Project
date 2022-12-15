@@ -1,4 +1,4 @@
-#pragma once
+//s#pragma once
 #include "utils/scenedata.h"
 #include "settings.h"
 #include <GL/glew.h>
@@ -204,19 +204,39 @@ void Realtime::paintShape(GLuint shaderID,
  * @param size - x and z dimension
  */
 void Realtime::paintFloor(float y, float size) {
-    m_terrain_shader->bind();
-    m_terrain_shader->setUniformValue(
-                m_terrain_shader->uniformLocation("projMatrix"), QMatrix4x4(glm::value_ptr(m_camera.projMatrix())).transposed());
-    m_terrain_shader->setUniformValue(
-                m_terrain_shader->uniformLocation("mvMatrix"), QMatrix4x4(glm::value_ptr(m_camera.viewMatrix())).transposed());
+//    m_terrain_shader->bind();
+//    m_terrain_shader->setUniformValue(
+//                m_terrain_shader->uniformLocation("projMatrix"), QMatrix4x4(glm::value_ptr(m_camera.projMatrix())).transposed());
+//    m_terrain_shader->setUniformValue(
+//                m_terrain_shader->uniformLocation("mvMatrix"), QMatrix4x4(glm::value_ptr(m_camera.viewMatrix())).transposed());
 
-    int res = m_terrain.getResolution();
+//    int res = m_terrain.getResolution();
 
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDrawArrays(GL_TRIANGLES, 0, res * res * 6);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//    glDrawArrays(GL_TRIANGLES, 0, res * res * 6);
 
-    m_terrain_shader->release();
+//    m_terrain_shader->release();
+    glUseProgram(m_phong_shader);
+    // paint floor
+    sendMaterialToShader(m_phong_shader, glm::vec4(0.0f,0.0f,0.0f,0), glm::vec4(0.1f,0.6f,0.2f,0), glm::vec4(1,1,1,0), 10.0f);
+    glBindVertexArray(m_cubeVAO);
+    // calculate model matrix
+    glm::mat4 floorModel(1);
+    floorModel = glm::translate(floorModel, glm::vec3(0,-0.05f,0));
+    floorModel = glm::scale(floorModel, glm::vec3(20,0.1f,20));
+    // send model matrix to vertex shader
+    glUniformMatrix4fv(glGetUniformLocation(m_phong_shader, "model"), 1, GL_FALSE, &floorModel[0][0]);
+    // calculate and send normal model matrix (i.e. inverse transpose of 3x3 CTM) to vertex shader
+    glm::mat3 normModel = glm::inverse(glm::transpose(glm::mat3(floorModel)));
+    glUniformMatrix3fv(glGetUniformLocation(m_phong_shader, "normModel"), 1, GL_FALSE, &normModel[0][0]);
+    // draw VAO
+    glDrawArrays(GL_TRIANGLES, 0, m_cubeBuffer.size() / 6);
+    // unbind VAO
+    glBindVertexArray(0);
+
+    // unbind phong shader
+    glUseProgram(0);
 }
 
 /**

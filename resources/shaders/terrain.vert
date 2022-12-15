@@ -9,6 +9,7 @@ out vec3 lightDir;
 
 uniform mat4 projMatrix;
 uniform mat4 mvMatrix;
+uniform vec4 cameraPos;
 
 void main()
 {
