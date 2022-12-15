@@ -34,7 +34,14 @@ void Realtime::finish() {
     killTimer(m_timer);
     this->makeCurrent();
 
-    // Students: anything requiring OpenGL calls when the program exits should be done here
+    // clean up VBO and VAO memory
+    std::vector<GLuint> vbos{m_cubeVBO, m_cylinderVBO, m_sphereVBO};
+    std::vector<GLuint> vaos{m_cubeVAO, m_cylinderVAO, m_sphereVAO};
+    glDeleteBuffers(3, vbos.data());
+    glDeleteVertexArrays(3, vaos.data());
+
+    // delete shader data
+    glDeleteProgram(m_phong_shader);
 
     this->doneCurrent();
 }
@@ -88,42 +95,11 @@ void Realtime::initializeGL() {
     sendLightsToShader(m_phong_shader, m_lights);
     glUseProgram(0);
 
-    // setting up terrain
-    m_terrain_shader = new QOpenGLShaderProgram;
-    m_terrain_shader->addShaderFromSourceFile(QOpenGLShader::Vertex,":/resources/shaders/terrain.vert");
-    m_terrain_shader->addShaderFromSourceFile(QOpenGLShader::Fragment,":/resources/shaders/terrain.frag");
-
-    m_terrainVAO.create();
-    m_terrainVAO.bind();
-
-    std::vector<GLfloat> verts = m_terrain.generateTerrain();
-
-    m_terrainVBO.create();
-    m_terrainVBO.bind();
-    m_terrainVBO.allocate(verts.data(),verts.size()*sizeof(GLfloat));
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
-                             nullptr);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
-                             reinterpret_cast<void *>(3 * sizeof(GLfloat)));
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat),
-                             reinterpret_cast<void *>(6 * sizeof(GLfloat)));
-
-    m_terrainVBO.release();
-
-    m_terrain_shader->release();
-
     // setting up spider
     m_spider = Spider(m_phong_shader,
                       m_cylinderVAO, m_cylinderBuffer.size() / 6,
                       m_sphereVAO, m_sphereBuffer.size() / 6,
-                      0.4f, 0.4f, 0.05f, 0.2f);
+                      0.4f, 0.4f, 0.05f,0.2f);
 }
 
 void Realtime::paintGL() {
@@ -138,11 +114,7 @@ void Realtime::paintGL() {
     // paint the ground
     paintFloor(0, 20);
 
-    // paint leg for calculated IK solution angles
-//    m_spider.paintLeg(glm::mat4(1), target);
-//    // paint the target point as a blue sphere
-//    paintTarget(target);
-
+    // paint spider
     m_spider.paintSpider();
 }
 
@@ -193,13 +165,13 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
         // rotate for X
-        float thetaX = (float)deltaX / 500.0f;
+        float thetaX = -(float)deltaX / 500.0f;
         m_camera.rotate(glm::vec3(0,1,0), thetaX);
 
         // rotate for Y
         glm::vec3 sideVec = glm::normalize(glm::cross(glm::normalize(m_camera.look),
                                                       glm::normalize(m_camera.up)));
-        float thetaY = (float)deltaY / 500.0f;
+        float thetaY = -(float)deltaY / 500.0f;
         m_camera.rotate(sideVec, thetaY);
 
         update(); // asks for a PaintGL() call to occur
@@ -212,6 +184,7 @@ void Realtime::timerEvent(QTimerEvent *event) {
     m_elapsedTimer.restart();
 
     // Use deltaTime and m_keyMap here to move around
+    // free camera movement
     glm::vec3 normLook = glm::normalize(m_camera.look);
     glm::vec3 normRight = glm::normalize(glm::cross(normLook, glm::normalize(m_camera.up)));
     glm::vec3 worldUp(0.0f, 1.0f, 0.0f);

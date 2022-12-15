@@ -34,7 +34,7 @@ public:
     glm::vec3 pos; // spider position (center of body)
     glm::vec3 look; // vector that spider's looking in
     glm::vec3 up; // up vector of spider
-//    glm::mat4 spiderModel;
+
     glm::mat4 spiderTranslation;
     glm::mat4 spiderRotation;
 

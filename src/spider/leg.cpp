@@ -46,6 +46,7 @@ void Leg::updateSpiderModel(glm::mat4 spiderModel) {
 
     // calculate new target position
     glm::vec3 targetPosWorld = spiderModel * glm::vec4(targetPosSpider,1);
+    targetPosWorld.y = Realtime::getFloorHeight(targetPosWorld.x, targetPosWorld.z);
 
     // if foot is too far from target, and not already in movestate, initiate movestate
     if (!moveState && glm::distance(this->currFootPosWorld, targetPosWorld) > 0.5f) {

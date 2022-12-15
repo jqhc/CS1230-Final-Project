@@ -28,32 +28,32 @@ Spider::Spider(GLuint phong_shader,
 
     this->legs = std::vector<Leg>{};
     // back left
-    legs.push_back(Leg(glm::vec3(-0.4f,-spiderHeight,-0.25f), glm::vec3(-0.2f,0,-0.15f), glm::vec3(0.0f,-spiderHeight,-0.25f),
+    legs.push_back(Leg(glm::vec3(-0.4f,-spiderHeight,-0.25f), glm::vec3(-0.2f,0,-0.1f), glm::vec3(0.0f,-spiderHeight,-0.25f),
                        this->spiderTranslation,
                        0.2f, segLength1, segLength2, legDiameter,
                        phong_shader, cylinderVAO, cylinderBufferSize, sphereVAO, sphereBufferSize));
     // back right
-    legs.push_back(Leg(glm::vec3(-0.4f,-spiderHeight,0.25f), glm::vec3(-0.2f,0,0.15f), glm::vec3(-0.3f,-spiderHeight,0.25f),
+    legs.push_back(Leg(glm::vec3(-0.4f,-spiderHeight,0.25f), glm::vec3(-0.2f,0,0.1f), glm::vec3(-0.3f,-spiderHeight,0.25f),
                        this->spiderTranslation,
                        0.2f, segLength1, segLength2, legDiameter,
                        phong_shader, cylinderVAO, cylinderBufferSize, sphereVAO, sphereBufferSize));
     // middle left
-    legs.push_back(Leg(glm::vec3(0,-spiderHeight,-0.4f), glm::vec3(0,0,-0.2f), glm::vec3(0.3f,-spiderHeight,-0.4f),
+    legs.push_back(Leg(glm::vec3(0,-spiderHeight,-0.4f), glm::vec3(0,0,-0.15f), glm::vec3(0.3f,-spiderHeight,-0.4f),
                        this->spiderTranslation,
                        0.2f, segLength1, segLength2, legDiameter,
                        phong_shader, cylinderVAO, cylinderBufferSize, sphereVAO, sphereBufferSize));
     // middle right
-    legs.push_back(Leg(glm::vec3(0,-spiderHeight,0.4f), glm::vec3(0,0,0.2f), glm::vec3(0.0f,-spiderHeight,0.4f),
+    legs.push_back(Leg(glm::vec3(0,-spiderHeight,0.4f), glm::vec3(0,0,0.15f), glm::vec3(0.0f,-spiderHeight,0.4f),
                        this->spiderTranslation,
                        0.2f, segLength1, segLength2, legDiameter,
                        phong_shader, cylinderVAO, cylinderBufferSize, sphereVAO, sphereBufferSize));
     // front left
-    legs.push_back(Leg(glm::vec3(0.4f,-spiderHeight,-0.25f), glm::vec3(0.2f,0,-0.15f), glm::vec3(0.6f,-spiderHeight,-0.25f),
+    legs.push_back(Leg(glm::vec3(0.4f,-spiderHeight,-0.25f), glm::vec3(0.2f,0,-0.1f), glm::vec3(0.6f,-spiderHeight,-0.25f),
                        this->spiderTranslation,
                        0.2f, segLength1, segLength2, legDiameter,
                        phong_shader, cylinderVAO, cylinderBufferSize, sphereVAO, sphereBufferSize));
     // back right
-    legs.push_back(Leg(glm::vec3(0.4f,-spiderHeight,0.25f), glm::vec3(0.2f,0,0.15f), glm::vec3(0.3f,-spiderHeight,0.25f),
+    legs.push_back(Leg(glm::vec3(0.4f,-spiderHeight,0.25f), glm::vec3(0.2f,0,0.1f), glm::vec3(0.3f,-spiderHeight,0.25f),
                        this->spiderTranslation,
                        0.2f, segLength1, segLength2, legDiameter,
                        phong_shader, cylinderVAO, cylinderBufferSize, sphereVAO, sphereBufferSize));
@@ -97,13 +97,23 @@ void Spider::rotateLook(float deltaTime, bool right) {
 void Spider::paintSpider() {
     glm::mat4 spiderModel = spiderTranslation * spiderRotation;
 
-    //----BODY----//
-    paintBody(spiderModel);
+    float bodyHeight = 0.0f;
+    for (Leg& leg : legs) {
+        bodyHeight += leg.currFootPosWorld.y;
+    }
+    bodyHeight /= legs.size();
+    spiderModel = glm::translate(glm::vec3(0,bodyHeight,0)) * spiderModel;
 
     for (Leg& leg : this->legs) {
         leg.updateSpiderModel(spiderModel);
         leg.paint();
     }
+
+    // calculate body height based on leg heights (average)
+
+
+    //----BODY----//
+    paintBody(spiderModel);
 }
 
 /**
@@ -112,6 +122,8 @@ void Spider::paintSpider() {
  *                      to spider space.
  */
 void Spider::paintBody(glm::mat4 spiderModel) {
+
+
     // paint spider body
     glm::mat4 bodyModel = spiderModel // move to world space with spider model matrix
             * glm::scale(glm::vec3(0.65f, 0.25f, 0.4f)); // scale to correct size
