@@ -2,6 +2,7 @@
 
 ## About
 Thanks for checking out our project! Itsy Bitsy is a dynamic, user-controlled spider built using C++ and its OpenGL API. Itsy's legs are managed using an inverse kinematics algorithm.
+![Itsy Bitsy!](https://github.com/jqhc/CS1230-Final-Project/blob/master/resources/ItsyBitsy.png)
 
 ## Group Members
 - Justin Cheng (jcheng59)
