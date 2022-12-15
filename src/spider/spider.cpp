@@ -169,3 +169,7 @@ void Spider::paintBody(glm::mat4 spiderModel) {
                          m_sphereBufferSize, m_sphereVAO,
                          bodyMaterial, rightPupilModel);
 }
+
+glm::vec3 Spider::spiderLook() {
+    return look;
+}

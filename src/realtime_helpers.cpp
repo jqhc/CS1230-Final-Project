@@ -1,4 +1,4 @@
-#pragma once
+//s#pragma once
 #include "utils/scenedata.h"
 #include "settings.h"
 #include <GL/glew.h>

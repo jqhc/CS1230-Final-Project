@@ -51,6 +51,7 @@ public:
     // for movement
     void move(float dist, bool forward);
     void rotateLook(float deltaTime, bool right);
+    glm::vec3 spiderLook();
 };
 
 #endif // SPIDER_H
